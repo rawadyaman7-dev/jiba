@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enter Code</title>
+  <style>
+    :root {
+      --bg: #0f1220;         /* background */
+      --card: #171a2b;       /* panel */
+      --ink: #e8ecff;        /* text */
+      --muted: #8d95b5;      /* secondary */
+      --brand: #5b8cff;      /* accent */
+      --ok: #15c37e;         /* success */
+      --bad: #ff5b6e;        /* error */
+      --ring: rgba(91,140,255,.3);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 800px at 80% -20%, #1a1f37 0%, #0f1220 60%) no-repeat var(--bg);
+      color: var(--ink);
+      display: grid; place-items: center;
+    }
+    .wrap { width: min(680px, 92vw); }
+    .card {
+      background: linear-gradient(180deg, #1a1f33 0%, #121528 100%);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+      padding: 28px; position: relative; overflow: hidden;
+    }
+    .title { display:flex; gap:12px; align-items:center; margin-bottom: 18px; }
+    .dot { width:10px; height:10px; border-radius:999px; background: var(--brand); box-shadow: 0 0 24px var(--ring); }
+    h1 { font-size: 20px; margin: 0; letter-spacing: .4px; }
+    p { color: var(--muted); margin: 4px 0 0; font-size: 14px; }
+
+    .lock {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start;
+    }
+    @media (max-width: 560px){ .lock{ grid-template-columns: 1fr; } }
+
+    .display { background: var(--card); border:1px solid rgba(255,255,255,.06); border-radius: 16px; padding:16px; }
+    .digits { display:flex; gap:10px; justify-content: center; margin: 4px 0 6px; }
+    .bubble {
+      width: 58px; height: 64px; border-radius: 14px; display:grid; place-items:center;
+      background: linear-gradient(180deg, #171a2b 0%, #101323 100%);
+      border:1px solid rgba(255,255,255,.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      font-size: 30px; letter-spacing:1px;
+    }
+    .bubble span { filter: drop-shadow(0 2px 10px rgba(0,0,0,.2)); }
+    .status { text-align:center; min-height: 22px; font-size: 14px; color: var(--muted); }
+
+    .pad { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .key {
+      user-select: none; -webkit-user-select: none; cursor: pointer;
+      padding: 16px 0; border-radius: 14px; font-size: 20px; text-align:center; color: var(--ink);
+      background: linear-gradient(180deg, #1b2036 0%, #12172c 100%);
+      border:1px solid rgba(255,255,255,.06);
+      transition: transform .04s ease, filter .2s ease, box-shadow .2s ease;
+      box-shadow: 0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .key:active { transform: translateY(1px); filter: brightness(1.08); }
+    .key[data-fn]{ font-size: 14px; }
+
+    .actions { display:flex; gap:10px; margin-top: 10px; }
+    button.primary {
+      flex:1 1 auto; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, #3b5bd8 0%, #2747c8 100%);
+      color: white; font-weight: 600; letter-spacing:.2px; cursor: pointer; font-size: 15px;
+      box-shadow: 0 10px 26px rgba(68,104,230,.45), inset 0 1px 0 rgba(255,255,255,.15);
+    }
+    button.secondary {
+      padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, #1b213a 0%, #141a32 100%);
+      color: var(--ink); cursor: pointer; font-size: 14px;
+    }
+
+    .hint { font-size: 12px; color: var(--muted); text-align:center; margin-top:8px; }
+
+    .hidden { display:none; }
+    .reveal {
+      margin-top: 24px; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, #0f141f 0%, #0b101a 100%);
+    }
+    .tag { font-size: 12px; color: #9fb5ff; background: rgba(91,140,255,.06); border: 1px solid rgba(91,140,255,.25);
+      padding: 3px 8px; border-radius:999px; display:inline-block; margin-bottom:8px; }
+
+    .shake { animation: shake .35s ease; }
+    @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px);} 30%, 50%, 70% { transform: translateX(-4px);} 40%, 60% { transform: translateX(4px);} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="card">
+      <div class="title"><span class="dot"></span><h1>Enter 3‑Digit Code</h1></div>
+      <p>Access is limited. Enter the correct 3‑digit passcode to continue.</p>
+
+      <div class="lock" aria-live="polite">
+        <div class="display">
+          <div class="digits" id="digits">
+            <div class="bubble" aria-label="digit 1"><span>•</span></div>
+            <div class="bubble" aria-label="digit 2"><span>•</span></div>
+            <div class="bubble" aria-label="digit 3"><span>•</span></div>
+          </div>
+          <div class="status" id="status">Awaiting input…</div>
+          <div class="actions">
+            <button class="secondary" id="clearBtn" type="button">Clear</button>
+            <button class="primary" id="unlockBtn" type="button">Unlock</button>
+          </div>
+          <div class="hint" id="hint" aria-hidden="true"></div>
+        </div>
+
+        <div class="pad" role="group" aria-label="keypad">
+          <div class="key" data-key="1">1</div>
+          <div class="key" data-key="2">2</div>
+          <div class="key" data-key="3">3</div>
+          <div class="key" data-key="4">4</div>
+          <div class="key" data-key="5">5</div>
+          <div class="key" data-key="6">6</div>
+          <div class="key" data-key="7">7</div>
+          <div class="key" data-key="8">8</div>
+          <div class="key" data-key="9">9</div>
+          <div class="key" data-fn data-key="back">⌫</div>
+          <div class="key" data-key="0">0</div>
+          <div class="key" data-fn id="go">⏎</div>
+        </div>
+      </div>
+
+      <!-- Protected content: shown after correct code when REVEAL_MODE === 'reveal' -->
+      <div id="protected" class="reveal hidden">
+        <div class="tag">Unlocked</div>
+        <h2 style="margin:0 0 6px 0">Welcome!</h2>
+        <p style="margin:0">This is your protected section. Replace this with your content (text, images, or an embedded PDF). Example below embeds a PDF when hosted together as <code>file.pdf</code>:</p>
+        <div style="margin-top:14px">
+          <iframe title="Protected PDF" src="file.pdf" style="width:100%; height:420px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:#0b101a"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ⚠️ Important security note (read me):
+     * This is a purely client‑side gate. It is suitable for casual gating (e.g., treasure hunts, simple reveals),
+     * not for real security. Anyone with devtools can bypass it. For true protection, validate on a server.
+     */
+
+    // ======== Configuration ========
+    const REVEAL_MODE = 'reveal'; // 'reveal' | 'redirect'
+    const REDIRECT_URL = 'protected.html'; // used only if REVEAL_MODE === 'redirect'
+
+    // Option A (simple): store plaintext code (e.g., "735").
+    // Change this to your 3-digit code. Digits only, length 3.
+    const PASS_CODE = '721';
+
+    // Option B (obfuscation): use a SHA‑256 hash instead of plaintext.
+    // 1) Open the site, run: setPass('735') in the dev console, copy the hash, then paste into PASS_HASH.
+    // 2) Then set USE_HASH = true; and optionally blank PASS_CODE.
+    const USE_HASH = false;
+    const PASS_HASH = '';
+
+    // Attempts/lockout (basic throttling)
+    const MAX_ATTEMPTS = 6;
+    const LOCKOUT_MS = 20_000; // 20s after too many tries
+
+    // ======== Logic ========
+    const digitsEl = document.getElementById('digits');
+    const statusEl = document.getElementById('status');
+    const hintEl = document.getElementById('hint');
+    const clearBtn = document.getElementById('clearBtn');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const protectedEl = document.getElementById('protected');
+    const cardEl = document.getElementById('card');
+
+    const bubbles = Array.from(digitsEl.querySelectorAll('.bubble span'));
+    let buffer = '';
+    let attempts = 0;
+    let lockedUntil = 0;
+
+    function updateDisplay(){
+      for (let i=0;i<3;i++) bubbles[i].textContent = buffer[i] ?? '•';
+      statusEl.textContent = buffer.length ? `Digits entered: ${buffer.length}/3` : 'Awaiting input…';
+    }
+
+    function setStatus(txt, type){
+      statusEl.textContent = txt;
+      statusEl.style.color = type === 'bad' ? 'var(--bad)' : type === 'ok' ? 'var(--ok)' : 'var(--muted)';
+    }
+
+    function shake(){
+      cardEl.classList.remove('shake'); void cardEl.offsetWidth; cardEl.classList.add('shake');
+    }
+
+    function clearInput(){ buffer = ''; updateDisplay(); }
+
+    async function sha256Str(s){
+      const enc = new TextEncoder().encode(s);
+      const digest = await crypto.subtle.digest('SHA-256', enc);
+      return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+
+    async function checkPass(code){
+      if (USE_HASH) {
+        if (!PASS_HASH) return false;
+        const h = await sha256Str(code);
+        return h === PASS_HASH.toLowerCase();
+      }
+      return code === PASS_CODE;
+    }
+
+    async function tryUnlock(){
+      const now = Date.now();
+      if (now < lockedUntil){
+        const secs = Math.ceil((lockedUntil - now)/1000);
+        setStatus(`Locked. Try again in ${secs}s.`, 'bad');
+        shake();
+        return;
+      }
+
+      if (buffer.length !== 3){
+        setStatus('Enter exactly 3 digits.', 'bad');
+        shake();
+        return;
+      }
+
+      if (await checkPass(buffer)){
+        setStatus('Access granted.', 'ok');
+        if (REVEAL_MODE === 'redirect') {
+          window.location.href = REDIRECT_URL;
+        } else {
+          protectedEl.classList.remove('hidden');
+          // optional: scroll into view
+          setTimeout(()=>protectedEl.scrollIntoView({behavior:'smooth'}), 150);
+        }
+      } else {
+        attempts++;
+        setStatus(`Incorrect code (#${attempts}).`, 'bad');
+        shake();
+        clearInput();
+        if (attempts >= MAX_ATTEMPTS){
+          lockedUntil = Date.now() + LOCKOUT_MS;
+          attempts = 0; // reset counter after enforcing cooldown
+          setStatus('Too many attempts. Temporarily locked.', 'bad');
+        }
+      }
+    }
+
+    // keypad input
+    document.querySelectorAll('.key').forEach(k => {
+      k.addEventListener('click', async () => {
+        const key = k.dataset.key;
+        if (key === 'back') { buffer = buffer.slice(0,-1); updateDisplay(); return; }
+        if (!key) { // enter key
+          await tryUnlock(); return;
+        }
+        if (buffer.length < 3 && /\d/.test(key)) { buffer += key; updateDisplay(); }
+      });
+    });
+
+    // buttons
+    clearBtn.addEventListener('click', clearInput);
+    unlockBtn.addEventListener('click', tryUnlock);
+
+    // keyboard support
+    window.addEventListener('keydown', async (e)=>{
+      if (/^\d$/.test(e.key)) { if (buffer.length < 3) { buffer += e.key; updateDisplay(); } }
+      else if (e.key === 'Backspace') { buffer = buffer.slice(0,-1); updateDisplay(); }
+      else if (e.key === 'Enter') { await tryUnlock(); }
+      else if (e.key.toLowerCase() === 'c') { clearInput(); }
+    });
+
+    // optional helper to compute a hash in devtools
+    window.setPass = async (code) => {
+      const hash = await sha256Str(String(code||''));
+      console.log('%cSHA-256 for code', 'color:#9fb5ff', code, '\n', hash);
+      return hash;
+    };
+
+    updateDisplay();
+    hintEl.textContent = '';
+  </script>
+</body>
+</html>
